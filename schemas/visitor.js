@@ -5,8 +5,8 @@ const visitor = z.object({
   device: z.string(),
   userAgent: z.string(),
   referrer: z.string(),
-  screenWidth: z.string(),
-  screenHeight: z.string(),
+  screenWidth: z.number(),
+  screenHeight: z.number(),
 });
 
 module.exports = visitor;

@@ -28,7 +28,7 @@ model Visitor {
   device       String
   userAgent    String
   referrer     String
-  screenWidth  String
-  screenHeight String
+  screenWidth  Int
+  screenHeight Int
   timeStamp    DateTime @default(now())
 }
