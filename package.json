@@ -6,16 +6,22 @@
   "repository": "https://github.com/JaganReddy-dev/analytics-backend.git",
   "author": "Jagan",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
-    "zod": "^4.1.11"
+    "zod": "^4.1.11",
+    "zod-openapi": "^5.4.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/swagger-ui-express": "^4.1.8",
     "nodemon": "^3.1.10",
     "prisma": "^6.16.2",
+    "swagger-ui-express": "^5.0.1",
     "terser": "^5.44.0"
   },
   "scripts": {

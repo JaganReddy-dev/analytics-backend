@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,21 +8,39 @@ datasource db {
 }
 
 model Event {
-  id        String   @id @default(uuid())
+  id        String   @id @unique @default(uuid())
   type      String
+  action    String
+  metadata  Json?
   website   String
   createdAt DateTime @default(now())
 
   @@index([website])
+  @@index([type])
 }
 
 model Visitor {
-  id           String   @unique @default(uuid())
+  id           String   @id @unique @default(uuid())
   url          String
+  browser      String
+  os           String
   device       String
-  userAgent    String
   referrer     String
   screenWidth  Int
   screenHeight Int
   timeStamp    DateTime @default(now())
+  latlong      String
+
+  //  location     String
+  @@index([url])
 }
+
+// model PageView {
+//   id        String   @id @unique @default(uuid())
+//   url       String
+//   latlong   String
+//   location  String
+//   timeStamp DateTime @default(now())
+
+//   @@index([url])
+// }
