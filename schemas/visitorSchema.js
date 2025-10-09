@@ -13,15 +13,17 @@ const VisitorSchema = z
     referrer: z.string().meta({ description: "Referrer URL" }).optional(),
     screenWidth: z
       .number()
-      // Example changed from string to number
       .meta({ description: "Screen Width", example: 1920 }),
     screenHeight: z
       .number()
-      // Corrected description and changed example to a number
       .meta({ description: "Screen Height", example: 1080 }),
+    isBrave: z.boolean().meta({
+      description: "is Brave",
+      example: "yes",
+    }),
   })
   .meta({
-    id: "Visitor", // <-- Add this ID to register the schema
+    id: "Visitor",
     description: "Visitor object",
   });
 

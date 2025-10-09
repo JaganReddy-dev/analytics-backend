@@ -35,12 +35,15 @@ model Visitor {
   @@index([url])
 }
 
-// model PageView {
-//   id        String   @id @unique @default(uuid())
-//   url       String
-//   latlong   String
-//   location  String
-//   timeStamp DateTime @default(now())
+model PageView {
+  id        String   @id @unique @default(uuid())
+  sessionId String
+  userId    String
+  url       String
+  lat       Float?
+  lon       Float?
+  location  String?
+  timeStamp DateTime @default(now())
 
-//   @@index([url])
-// }
+  @@index([url])
+}

@@ -19,7 +19,7 @@ const EventSchema = z
       .optional(),
   })
   .meta({
-    id: "Event", // <-- Add this ID to register the schema
+    id: "Event",
     description: "An event object",
   });
 export default EventSchema;

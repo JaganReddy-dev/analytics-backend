@@ -1,18 +1,51 @@
-// ============================================
-// Core Configuration
-// ============================================
-const CONFIG = {
-  BASE_URL: "http://localhost:4000/collect",
-  SCROLL_CHECKPOINTS: [25, 50, 75, 100],
-  SCROLL_THROTTLE_MS: 500,
-};
+(() => {
+  const CONFIG = {
+    BASE_URL: "http://localhost:4000/collect",
+    SCROLL_CHECKPOINTS: [25, 50, 75, 100],
+    SCROLL_THROTTLE_MS: 500,
+    SESSION_TIMEOUT_MS: 30 * 60 * 1000, // 30 min
+  };
 
-// ============================================
-// API Client
-// ============================================
-console.log("currently monitoring");
-const api = {
-  send(endpoint, payload) {
+  // --- Session & User Management ---
+  const generateSessionId = () => {
+    const id = crypto.randomUUID();
+    localStorage.setItem("sessionId", id);
+    localStorage.setItem("lastActive", Date.now().toString());
+    return id;
+  };
+
+  const getSessionId = () => {
+    const id = localStorage.getItem("sessionId");
+    const lastActive = Number(localStorage.getItem("lastActive"));
+    if (
+      !id ||
+      !lastActive ||
+      Date.now() - lastActive >= CONFIG.SESSION_TIMEOUT_MS
+    ) {
+      return generateSessionId();
+    }
+    return id;
+  };
+
+  const generateUserId = () => {
+    const id = crypto.randomUUID();
+    localStorage.setItem("userId", id);
+    return id;
+  };
+
+  const updateActivity = () => {
+    localStorage.setItem("lastActive", Date.now().toString());
+  };
+
+  let sessionId = getSessionId();
+  let userId = localStorage.getItem("userId") || generateUserId();
+  let isBrave = false;
+
+  const reached = new Set();
+  let userLocation = null;
+
+  const sendData = (endpoint, payload) => {
+    updateActivity();
     const url = `${CONFIG.BASE_URL}/${endpoint}`;
 
     if (navigator.sendBeacon) {
@@ -27,155 +60,125 @@ const api = {
         body: JSON.stringify(payload),
       }).catch((err) => console.error("Tracking error:", err));
     }
-  },
+  };
 
-  trackEvent(type, action, metadata = {}) {
-    this.send("event", {
+  const trackEvent = (type, action, metadata = {}) => {
+    sendData("event", {
       type,
       action,
       website: window.location.href,
       metadata,
     });
-  },
+  };
 
-  trackVisitor(visitorData) {
-    this.send("visitor", visitorData);
-  },
-};
+  const checkBrave = async () => {
+    if (navigator.brave && navigator.brave.isBrave) {
+      return await navigator.brave.isBrave();
+    }
+    return false;
+  };
 
-// ============================================
-// Visitor Information Collector
-// ============================================
+  const visitorCollector = () => ({
+    url: window.location.href,
+    userAgent: navigator.userAgent,
+    referrer: document.referrer || "direct",
+    screenWidth: window.screen.width,
+    screenHeight: window.screen.height,
+    location: userLocation,
+    isBrave: isBrave,
+  });
 
-const visitorCollector = {
-  collect() {
-    return {
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-      referrer: document.referrer || "direct",
-      screenWidth: window.screen.width,
-      screenHeight: window.screen.height,
-    };
-  },
-};
-
-// ============================================
-// Click Tracking Module
-// ============================================
-const clickTracker = {
-  trackables: [
+  const trackables = [
     { attr: "trackify-navigate", type: "navigation-click" },
     { attr: "trackify-button", type: "button-click" },
-  ],
+  ];
 
-  init() {
-    document.addEventListener("click", this.handleClick.bind(this));
-  },
-
-  handleClick(e) {
-    for (const t of this.trackables) {
+  const handleClick = (e) => {
+    for (const t of trackables) {
       const target = e.target.closest(`[${t.attr}]`);
       if (target) {
         const action = target.getAttribute(t.attr);
-        api.trackEvent(t.type, action, { element: t.attr });
+        trackEvent(t.type, action, { element: t.attr });
         break;
       }
     }
-  },
-};
+  };
 
-// ============================================
-// Scroll Tracking Module
-// ============================================
-const scrollTracker = {
-  reached: new Set(),
+  const clickTracker = () => document.addEventListener("click", handleClick);
 
-  init() {
-    window.addEventListener(
-      "scroll",
-      this.throttle(this.handleScroll.bind(this), CONFIG.SCROLL_THROTTLE_MS)
-    );
-  },
+  const scrollTracker = () => {
+    const getScrollPercent = () => {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      return Math.round((scrollTop / docHeight) * 100);
+    };
 
-  getScrollPercent() {
-    const scrollTop = window.scrollY;
-    const docHeight =
-      document.documentElement.scrollHeight - window.innerHeight;
-    return Math.round((scrollTop / docHeight) * 100);
-  },
-
-  handleScroll() {
-    const percent = this.getScrollPercent();
-
-    for (let checkpoint of CONFIG.SCROLL_CHECKPOINTS) {
-      if (percent >= checkpoint && !this.reached.has(checkpoint)) {
-        this.reached.add(checkpoint);
-        api.trackEvent("scroll-depth", "scroll", { depth: checkpoint });
-      }
-    }
-  },
-
-  throttle(fn, delay) {
-    let last = 0;
-    return (...args) => {
-      const now = Date.now();
-      if (now - last >= delay) {
-        last = now;
-        fn(...args);
+    const handleScroll = () => {
+      const percent = getScrollPercent();
+      for (let checkpoint of CONFIG.SCROLL_CHECKPOINTS) {
+        if (percent >= checkpoint && !reached.has(checkpoint)) {
+          reached.add(checkpoint);
+          trackEvent("scroll-depth", "scroll", { depth: checkpoint });
+        }
       }
     };
-  },
-};
 
-// ============================================
-// Location Tracking Module
-// ============================================
+    const throttle = (fn, delay) => {
+      let last = 0;
+      return (...args) => {
+        const now = Date.now();
+        if (now - last >= delay) {
+          last = now;
+          fn(...args);
+        }
+      };
+    };
 
-const locationTracker = {
-  init() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      this.handleSuccess.bind(this),
-      this.handleError.bind(this)
+    window.addEventListener(
+      "scroll",
+      throttle(handleScroll, CONFIG.SCROLL_THROTTLE_MS)
     );
-  },
+  };
 
-  handleSuccess(pos) {
-    api.trackEvent("location", "geolocation", {
-      lat: pos.coords.latitude,
-      lon: pos.coords.longitude,
-      accuracy: pos.coords.accuracy,
+  const pageViewCollector = () => ({
+    sessionId: sessionId,
+    userId: userId,
+    url: window.location.href,
+    lat: userLocation.lat || "",
+    lon: userLocation.lon || "",
+  });
+
+  const locationTracker = (callback) => {
+    if (!navigator.geolocation) {
+      callback();
+      return;
+    }
+    const handleSuccess = (pos) => {
+      userLocation = {
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+      };
+      callback();
+    };
+
+    const handleError = () => {
+      trackEvent("location", "ip_fallback");
+      callback();
+    };
+    navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+  };
+
+  const init = async () => {
+    isBrave = await checkBrave();
+    clickTracker();
+    scrollTracker();
+    locationTracker(() => {
+      sendData("pageview", pageViewCollector());
+      sendData("visitor", visitorCollector());
     });
-  },
+  };
 
-  handleError() {
-    api.trackEvent("location", "ip_fallback");
-  },
-};
-
-// ============================================
-// Main Tracker Initialization
-// ============================================
-const Trackify = {
-  init() {
-    // Track visitor
-    api.trackVisitor(visitorCollector.collect());
-
-    // Track initial pageview
-    api.trackEvent("pageview", "page_load");
-
-    // Initialize all trackers
-    clickTracker.init();
-    scrollTracker.init();
-    locationTracker.init();
-  },
-};
-
-// Auto-initialize
-(() => {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => Trackify.init());
-  } else {
-    Trackify.init();
-  }
+  document.addEventListener("DOMContentLoaded", init);
 })();

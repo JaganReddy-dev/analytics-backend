@@ -1,7 +1,7 @@
 import express from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { ZodError } from "zod";
-import visitorSchema from "../../schemas/visitor.js";
+import visitorSchema from "../../schemas/visitorSchema.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -13,8 +13,15 @@ router.post("/", async (req, res) => {
     const getDeviceType = (ua) => {
       return /Mobile|Android|iPhone|iPad/i.test(ua) ? "Mobile" : "Desktop";
     };
-    const getBrowser = (ua) => {
-      return ua.match(/(Firefox|Chrome|Safari|Edg)/)?.[0] || "Other";
+    const getBrowser = (ua, brave) => {
+      const isBrave = !!brave;
+      if (isBrave) return "Brave";
+      if (ua.includes("Firefox")) return "Firefox";
+      if (ua.includes("Edg")) return "Edge";
+      if (ua.includes("OPR") || ua.includes("Opera")) return "Opera";
+      if (ua.includes("Chrome")) return "Chrome";
+      if (ua.includes("Safari")) return "Safari";
+      return "Other";
     };
 
     const getOS = (ua) => {
@@ -23,7 +30,7 @@ router.post("/", async (req, res) => {
 
     const normalizedVisitor = {
       url: visitor.url.trim().toLowerCase(),
-      browser: getBrowser(visitor.userAgent),
+      browser: getBrowser(visitor.userAgent, visitor.isBrave),
       os: getOS(visitor.userAgent),
       device: getDeviceType(visitor.userAgent),
       referrer: visitor.referrer || "direct",
