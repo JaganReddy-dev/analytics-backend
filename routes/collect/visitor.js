@@ -8,7 +8,6 @@ const prisma = new PrismaClient();
 
 router.post("/", async (req, res) => {
   try {
-    console.log(req.body);
     const visitor = visitorSchema.strip().parse(req.body);
     const getDeviceType = (ua) => {
       return /Mobile|Android|iPhone|iPad/i.test(ua) ? "Mobile" : "Desktop";
@@ -25,10 +24,12 @@ router.post("/", async (req, res) => {
     };
 
     const getOS = (ua) => {
-      return ua.match(/(Windows|MacOS|Linux|Android|iOS)/)?.[0] || "Other";
+      return ua.match(/(Windows|Mac OS|Linux|Android|iOS)/)?.[0] || "Other";
     };
 
     const normalizedVisitor = {
+      sessionId: visitor.sessionId,
+      userId: visitor.userId,
       url: visitor.url.trim().toLowerCase(),
       browser: getBrowser(visitor.userAgent, visitor.isBrave),
       os: getOS(visitor.userAgent),
@@ -37,6 +38,8 @@ router.post("/", async (req, res) => {
       screenWidth: visitor.screenWidth,
       screenHeight: visitor.screenHeight,
       referrer: visitor?.referrer || "direct",
+      lat: visitor.location?.lat || "",
+      lon: visitor.location?.lon || "",
     };
 
     const savedVisitor = await prisma.visitor.create({

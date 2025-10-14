@@ -48,16 +48,22 @@
     updateActivity();
     const url = `${CONFIG.BASE_URL}/${endpoint}`;
 
+    const data = {
+      ...payload,
+      sessionId,
+      userId,
+    };
+
     if (navigator.sendBeacon) {
       navigator.sendBeacon(
         url,
-        new Blob([JSON.stringify(payload)], { type: "application/json" })
+        new Blob([JSON.stringify(data)], { type: "application/json" })
       );
     } else {
       fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(data),
       }).catch((err) => console.error("Tracking error:", err));
     }
   };
@@ -145,8 +151,7 @@
     sessionId: sessionId,
     userId: userId,
     url: window.location.href,
-    lat: userLocation.lat || "",
-    lon: userLocation.lon || "",
+    location: userLocation,
   });
 
   const locationTracker = (callback) => {

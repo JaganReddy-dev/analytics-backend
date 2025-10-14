@@ -2,6 +2,14 @@ import * as z from "zod";
 
 const VisitorSchema = z
   .object({
+    sessionId: z.uuid().meta({
+      description: "sessionId",
+      example: "09f85c76-3118-41dc-8ab7-bba81b31d8b8",
+    }),
+    userId: z.uuid().meta({
+      description: "userId",
+      example: "04350e85-8a82-42a3-a089-6045bf981e0c",
+    }),
     url: z
       .url()
       .meta({ description: "Visited URL", example: "https://example.com" }),
@@ -17,9 +25,21 @@ const VisitorSchema = z
     screenHeight: z
       .number()
       .meta({ description: "Screen Height", example: 1080 }),
+    location: z
+      .object({
+        lat: z.coerce.string(),
+        lon: z.coerce.string(),
+        accuracy: z.number().optional(),
+      })
+      .nullable()
+      .meta({
+        description: "Geolocation coordinates",
+        example: { lat: 42.123456, lon: -93.123456, accuracy: 10 },
+      })
+      .optional(),
     isBrave: z.boolean().meta({
       description: "is Brave",
-      example: "yes",
+      example: true,
     }),
   })
   .meta({

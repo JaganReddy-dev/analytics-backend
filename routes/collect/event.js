@@ -10,6 +10,8 @@ router.post("/", async (req, res) => {
     const validatedEvent = EventSchema.parse(req.body);
     const savedEvent = await prisma.event.create({
       data: {
+        sessionId: validatedEvent.sessionId,
+        userId: validatedEvent.userId,
         type: validatedEvent.type,
         action: validatedEvent.action,
         website: validatedEvent.website,
@@ -17,15 +19,12 @@ router.post("/", async (req, res) => {
       },
     });
 
-    res.status(200).json({ message: "Event saved!", event: savedEvent.id });
+    res.status(201).json({ message: "Event saved!", event: savedEvent.id });
   } catch (err) {
     if (err instanceof ZodError) {
       return res.status(400).json({
         error: "Validation failed",
-        details: err.errors.map((e) => ({
-          path: e.path.join("."),
-          message: e.message,
-        })),
+        details: err.errors,
       });
     }
 
@@ -36,9 +35,11 @@ router.post("/", async (req, res) => {
         code: err.code,
       });
     }
-
     console.error("Unexpected error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({
+      error: "An unexpected error occurred",
+      message: err.message || "Unknown error",
+    });
   }
 });
 

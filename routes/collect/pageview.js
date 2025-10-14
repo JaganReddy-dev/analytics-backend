@@ -10,14 +10,19 @@ router.post("/", async (req, res) => {
   try {
     const ValidPageView = PageViewSchema.parse(req.body);
     let location;
-    if (ValidPageView.lat && ValidPageView.lon) {
-      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${ValidPageView.lat},${ValidPageView.lon}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
-      const res = await fetch(url);
-      const data = await res.json();
+    let lat, lon;
+    if (ValidPageView.location?.lat && ValidPageView.location?.lon) {
+      const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${ValidPageView.location.lat},${ValidPageView.location.lon}&key=${process.env.GOOGLE_MAPS_API_KEY}`;
+      const geoResponse = await fetch(url);
+      const data = await geoResponse.json();
       if (data.status === "OK" && data.results.length > 0) {
         location = data.results[0].formatted_address;
+        lat = ValidPageView.location?.lat;
+        lon = ValidPageView.location?.lon;
       } else {
         location = null;
+        lat = null;
+        lon = null;
       }
     }
 
@@ -26,24 +31,29 @@ router.post("/", async (req, res) => {
         sessionId: ValidPageView.sessionId,
         userId: ValidPageView.userId,
         url: ValidPageView.url,
-        lat: ValidPageView?.lat,
-        lon: ValidPageView?.lon,
+        lat: lat,
+        lon: lon,
         location: location,
       },
     });
     res
-      .status(200)
-      .json({ message: "Page view saved!", pageView: savedPageView.id });
+      .status(201)
+      .json({ message: "Page view saved!", pageViewId: savedPageView.id });
   } catch (err) {
     if (err instanceof ZodError) {
       return res.status(400).json({
         error: "Validation failed",
-        details: err.errors.map((e) => ({
-          path: e.path.join("."),
-          message: e.message,
-        })),
+        details: err.errors,
       });
     }
-    res.status(500).json({ error: "Internal server error" });
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+      console.error("Database error:", err);
+      return res.status(500).json({
+        error: "Database operation failed",
+        code: err.code,
+      });
+    }
   }
 });
+
+export default router;

@@ -9,11 +9,14 @@ datasource db {
 
 model Event {
   id        String   @id @unique @default(uuid())
+  sessionId String   @db.Uuid
+  userId    String   @db.Uuid
   type      String
   action    String
   metadata  Json?
   website   String
   createdAt DateTime @default(now())
+  Session   Session  @relation(fields: [sessionId], references: [sessionId])
 
   @@index([website])
   @@index([type])
@@ -21,6 +24,8 @@ model Event {
 
 model Visitor {
   id           String   @id @unique @default(uuid())
+  sessionId    String   @db.Uuid
+  userId       String   @db.Uuid
   url          String
   browser      String
   os           String
@@ -28,8 +33,10 @@ model Visitor {
   referrer     String
   screenWidth  Int
   screenHeight Int
+  lat          String?
+  lon          String?
   timeStamp    DateTime @default(now())
-  latlong      String
+  Session      Session  @relation(fields: [sessionId], references: [sessionId])
 
   //  location     String
   @@index([url])
@@ -37,13 +44,38 @@ model Visitor {
 
 model PageView {
   id        String   @id @unique @default(uuid())
-  sessionId String
-  userId    String
+  sessionId String   @db.Uuid
+  userId    String   @db.Uuid
   url       String
-  lat       Float?
-  lon       Float?
+  lat       String?
+  lon       String?
   location  String?
   timeStamp DateTime @default(now())
+  Session   Session  @relation(fields: [sessionId], references: [sessionId])
 
   @@index([url])
+}
+
+model Session {
+  sessionId     String     @id
+  userId        String?
+  startedAt     DateTime   @default(now())
+  endedAt       DateTime?
+  pageViewCount Int        @default(0)
+  eventCount    Int        @default(0)
+  lat           String?
+  lon           String?
+  location      String?
+  user          User?      @relation(fields: [userId], references: [id])
+  events        Event[]
+  pageviews     PageView[]
+  visitors      Visitor[]
+}
+
+model User {
+  id           String    @id @default(uuid())
+  createdAt    DateTime  @default(now())
+  sessionCount Int       @default(0)
+  lastSeen     DateTime?
+  sessions     Session[]
 }

@@ -2,7 +2,6 @@ import * as z from "zod";
 import { createDocument } from "zod-openapi";
 import EventSchema from "../schemas/eventSchema.js";
 import VisitorSchema from "../schemas/visitorSchema.js";
-import VisitorResponse from "../schemas/visitorResSchema.js";
 import PageViewSchema from "../schemas/pageViewSchema.js";
 
 const openApiSpec = createDocument({
@@ -20,7 +19,16 @@ const openApiSpec = createDocument({
             description: "Event saved successfully!",
             content: {
               "application/json": {
-                schema: "",
+                schema: z.object({
+                  message: z.string().meta({
+                    description: "message",
+                    example: "Event saved",
+                  }),
+                  pageViewId: z.string().meta({
+                    description: "eventid",
+                    example: "12345",
+                  }),
+                }),
               },
             },
           },
@@ -41,7 +49,20 @@ const openApiSpec = createDocument({
         responses: {
           200: {
             description: "Visitor saved successfully!",
-            content: { "application/json": { schema: VisitorResponse } },
+            content: {
+              "application/json": {
+                schema: z.object({
+                  message: z.string().meta({
+                    description: "message",
+                    example: "Visitor saved successfully!",
+                  }),
+                  pageViewId: z.string().meta({
+                    description: "visitorId",
+                    example: "12345",
+                  }),
+                }),
+              },
+            },
           },
           400: {
             description: "Validation failed",
@@ -59,8 +80,21 @@ const openApiSpec = createDocument({
         },
         responses: {
           200: {
-            description: "Page view saved successfully!",
-            content: { "application/json": { schema: "" } },
+            description: "Success",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  message: z.string().meta({
+                    description: "message",
+                    example: "Page view saved!",
+                  }),
+                  pageViewId: z.string().meta({
+                    description: "pageViewId",
+                    example: "12345",
+                  }),
+                }),
+              },
+            },
           },
           400: {
             description: "Validation failed",
