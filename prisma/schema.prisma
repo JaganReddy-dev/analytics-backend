@@ -16,7 +16,7 @@ model Event {
   metadata  Json?
   website   String
   createdAt DateTime @default(now())
-  Session   Session  @relation(fields: [sessionId], references: [sessionId])
+  // Session   Session  @relation(fields: [sessionId], references: [sessionId])
 
   @@index([website])
   @@index([type])
@@ -36,7 +36,7 @@ model Visitor {
   lat          String?
   lon          String?
   timeStamp    DateTime @default(now())
-  Session      Session  @relation(fields: [sessionId], references: [sessionId])
+  // Session      Session  @relation(fields: [sessionId], references: [sessionId])
 
   //  location     String
   @@index([url])
@@ -51,31 +51,31 @@ model PageView {
   lon       String?
   location  String?
   timeStamp DateTime @default(now())
-  Session   Session  @relation(fields: [sessionId], references: [sessionId])
+  // Session   Session  @relation(fields: [sessionId], references: [sessionId])
 
   @@index([url])
 }
 
-model Session {
-  sessionId     String     @id
-  userId        String?
-  startedAt     DateTime   @default(now())
-  endedAt       DateTime?
-  pageViewCount Int        @default(0)
-  eventCount    Int        @default(0)
-  lat           String?
-  lon           String?
-  location      String?
-  user          User?      @relation(fields: [userId], references: [id])
-  events        Event[]
-  pageviews     PageView[]
-  visitors      Visitor[]
-}
+// model Session {
+//   sessionId     String     @id
+//   userId        String?
+//   startedAt     DateTime   @default(now())
+//   endedAt       DateTime?
+//   pageViewCount Int        @default(0)
+//   eventCount    Int        @default(0)
+//   lat           String?
+//   lon           String?
+//   location      String?
+//   user          User?      @relation(fields: [userId], references: [id])
+//   events        Event[]
+//   pageviews     PageView[]
+//   visitors      Visitor[]
+// }
 
-model User {
-  id           String    @id @default(uuid())
-  createdAt    DateTime  @default(now())
-  sessionCount Int       @default(0)
-  lastSeen     DateTime?
-  sessions     Session[]
-}
+// model User {
+//   id           String    @id @default(uuid())
+//   createdAt    DateTime  @default(now())
+//   sessionCount Int       @default(0)
+//   lastSeen     DateTime?
+//   sessions     Session[]
+// }

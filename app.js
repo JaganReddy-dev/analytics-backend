@@ -9,6 +9,7 @@ import swaggerUi from "swagger-ui-express";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
+app.set("trust proxy", true);
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 

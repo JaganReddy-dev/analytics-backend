@@ -25,18 +25,6 @@ const VisitorSchema = z
     screenHeight: z
       .number()
       .meta({ description: "Screen Height", example: 1080 }),
-    location: z
-      .object({
-        lat: z.coerce.string(),
-        lon: z.coerce.string(),
-        accuracy: z.number().optional(),
-      })
-      .nullable()
-      .meta({
-        description: "Geolocation coordinates",
-        example: { lat: 42.123456, lon: -93.123456, accuracy: 10 },
-      })
-      .optional(),
     isBrave: z.boolean().meta({
       description: "is Brave",
       example: true,

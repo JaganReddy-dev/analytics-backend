@@ -90,7 +90,6 @@
     referrer: document.referrer || "direct",
     screenWidth: window.screen.width,
     screenHeight: window.screen.height,
-    location: userLocation,
     isBrave: isBrave,
   });
 
@@ -151,7 +150,6 @@
     sessionId: sessionId,
     userId: userId,
     url: window.location.href,
-    location: userLocation,
   });
 
   const locationTracker = (callback) => {

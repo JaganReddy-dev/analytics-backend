@@ -2,11 +2,13 @@ import express from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import visitorSchema from "../../schemas/visitorSchema.js";
+import getSessionLocation from "../../utils/getSessionLocation.js";
+import sessionLocation from "../../middleware/sessionLocation.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-router.post("/", async (req, res) => {
+router.post("/", sessionLocation, async (req, res) => {
   try {
     const visitor = visitorSchema.strip().parse(req.body);
     const getDeviceType = (ua) => {
@@ -27,6 +29,8 @@ router.post("/", async (req, res) => {
       return ua.match(/(Windows|Mac OS|Linux|Android|iOS)/)?.[0] || "Other";
     };
 
+    let locationData = req.location || { lat: null, lon: null, location: null };
+
     const normalizedVisitor = {
       sessionId: visitor.sessionId,
       userId: visitor.userId,
@@ -38,8 +42,8 @@ router.post("/", async (req, res) => {
       screenWidth: visitor.screenWidth,
       screenHeight: visitor.screenHeight,
       referrer: visitor?.referrer || "direct",
-      lat: visitor.location?.lat || "",
-      lon: visitor.location?.lon || "",
+      lat: locationData.lat || "",
+      lon: locationData.lon || "",
     };
 
     const savedVisitor = await prisma.visitor.create({
