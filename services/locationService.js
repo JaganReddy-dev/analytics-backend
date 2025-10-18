@@ -39,28 +39,31 @@ const resolveLocation = async ({ lat = null, lon = null, ip, sessionId }) => {
     }
 
     // Skip IP lookup for localhost/private IPs
-    if (
-      ip === "127.0.0.1" ||
-      ip.startsWith("192.168.") ||
-      ip.startsWith("10.")
-    ) {
-      locationData = {
-        lat: null,
-        lon: null,
-        location: "Local Network",
-        source: "local-ip",
-        sessionId,
-      };
-      return locationData; // Don't cache local IPs
-    }
+    // if (
+    //   ip === "127.0.0.1" ||
+    //   ip.startsWith("192.168.") ||
+    //   ip.startsWith("10.")
+    // ) {
+    //   locationData = {
+    //     lat: null,
+    //     lon: null,
+    //     location: "Local Network",
+    //     source: "local-ip",
+    //     sessionId,
+    //   };
+    //   return locationData; // Don't cache local IPs
+    // }
 
-    const ipAPI = `https://ipapi.co/${ip}/json/`;
+    const ipAPI = `https://ip-api.com/json/${ip}`;
     const ipResponse = await fetch(ipAPI);
     const ipData = await ipResponse.json();
 
     // ipapi.co returns 'error' field when there's an issue
-    if (ipData.error) {
-      console.error("IP geolocation error:", ipData.reason || ipData.error);
+    if (ipData.status === "fail") {
+      console.error(
+        "IP geolocation error:",
+        ipData.message || "Unknown error from ip-api.com"
+      );
       locationData = {
         lat: null,
         lon: null,
@@ -72,9 +75,11 @@ const resolveLocation = async ({ lat = null, lon = null, ip, sessionId }) => {
     }
 
     locationData = {
-      lat: ipData.latitude?.toString() || null,
-      lon: ipData.longitude?.toString() || null,
-      location: `${ipData.city}, ${ipData.region}, ${ipData.country_name}`,
+      lat: ipData.lat?.toString() || null,
+      lon: ipData.lon?.toString() || null,
+      location: `${ipData.city || "Unknown City"}, ${
+        ipData.regionName || "Unknown Region"
+      }, ${ipData.country || "Unknown Country"}`,
       source: "ip",
       sessionId: sessionId,
     };
@@ -87,7 +92,7 @@ const resolveLocation = async ({ lat = null, lon = null, ip, sessionId }) => {
       source: "error",
       sessionId,
     };
-    return locationData; // Don't cache errors
+    return locationData;
   }
 
   // Cache valid location data before returning

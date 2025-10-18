@@ -7,7 +7,7 @@ import collectRouter from "./routes/collect/index.js";
 import openApiSpec from "./openapi/generate.js";
 import swaggerUi from "swagger-ui-express";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 const app = express();
 app.set("trust proxy", true);
 

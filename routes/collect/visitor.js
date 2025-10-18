@@ -2,7 +2,6 @@ import express from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 import visitorSchema from "../../schemas/visitorSchema.js";
-import getSessionLocation from "../../utils/getSessionLocation.js";
 import sessionLocation from "../../middleware/sessionLocation.js";
 
 const router = express.Router();

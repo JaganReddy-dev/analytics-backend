@@ -1,0 +1,24 @@
+# docker-compose.yml
+version: "3.8"
+services:
+  analytics-backend:
+    ports:
+      - 4000:4000
+    env_file:
+      - .env
+    build: .
+    depends_on:
+      - redis
+    networks:
+      - my-awesome-network
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - my-awesome-network
+
+networks:
+  my-awesome-network:
+    driver: bridge

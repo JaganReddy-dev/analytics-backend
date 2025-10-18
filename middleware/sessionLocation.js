@@ -18,6 +18,7 @@ const sessionLocation = async (req, res, next) => {
     }
 
     let clientIp = getIp(req);
+    console.log("🔍 Extracted IP:", clientIp, "Type:", typeof clientIp);
 
     req.location = await resolveLocation({
       lat: req.body.location?.lat || req.body.lat || null,

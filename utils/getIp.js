@@ -14,7 +14,16 @@ const getClientIp = (req) => {
 
 const cleanIp = (ip) => {
   if (!ip) return null;
-  return ip.replace(/^::ffff:/, "");
+
+  // Remove IPv4-mapped IPv6 prefix
+  ip = ip.replace(/^::ffff:/, "");
+
+  // Normalize IPv6 localhost to IPv4
+  if (ip === "::1") {
+    return "127.0.0.1";
+  }
+
+  return ip;
 };
 
 const getIp = (req) => {
