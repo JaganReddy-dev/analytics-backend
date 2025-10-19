@@ -1,6 +1,37 @@
 node_modules
+.yarn/cache
+.yarn/install-state.gz
+.yarn/unplugged
+dist
+build
 .git
+.gitignore
+README.md
+*.md
 .env
 .env.*
 !.env.example
 *.log
+.DS_Store
+coverage
+.vscode
+.idea
+.eslintrc*
+.prettierrc*
+jest.config.*
+test
+tests
+__tests__
+*.test.js
+*.spec.js
+.github
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# node_modules
+# .git
+# .env
+# .env.*
+# !.env.example
+# *.log
