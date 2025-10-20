@@ -1,6 +1,7 @@
-# docker-compose.yml
 services:
   analytics:
+    container_name: analytics-app
+    restart: always
     ports:
       - 4000:4000
     env_file:
@@ -13,11 +14,19 @@ services:
 
   redis:
     image: redis:8.2.2-alpine
+    container_name: analytics-redis
+    restart: always
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
     networks:
       - my-awesome-network
 
 networks:
   my-awesome-network:
     driver: bridge
+
+volumes:
+  redis_data:

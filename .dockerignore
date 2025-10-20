@@ -28,10 +28,3 @@ __tests__
 docker-compose.yml
 Dockerfile
 .dockerignore
-
-# node_modules
-# .git
-# .env
-# .env.*
-# !.env.example
-# *.log
